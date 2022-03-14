@@ -1,0 +1,24 @@
+{
+	"files": [
+		{
+			"path": "kernel/proc.c",
+			"bookmarks": [
+				{
+					"line": 177,
+					"column": 10,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "kernel/vm.c",
+			"bookmarks": [
+				{
+					"line": 191,
+					"column": 4,
+					"label": ""
+				}
+			]
+		}
+	]
+}

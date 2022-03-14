@@ -262,7 +262,7 @@ uvmdealloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz)
 }
 
 // Recursively free page-table pages.
-// All leaf mappings must already have been removed.
+// *All leaf mappings must already have been removed.*
 void
 freewalk(pagetable_t pagetable)
 {
@@ -431,4 +431,31 @@ copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
   } else {
     return -1;
   }
+}
+
+static char* indents[] = {
+  "..",
+  ".. ..",
+  ".. .. ..",
+};
+
+void _vmprint(pagetable_t pagetable, int level);
+
+void
+_vmprint(pagetable_t pagetable, int level) {
+  char *indent = indents[level];
+  for(int i = 0; i < 512; i++){
+    pte_t pte = pagetable[i];
+    pagetable_t pa = (pagetable_t)PTE2PA(pte);
+    if(pte & PTE_V){  // 存在且非叶子
+      printf("%s%d: pte %p pa %p\n", indent, i, pte, pa);
+      if((pte & (PTE_R|PTE_W|PTE_X)) == 0) _vmprint(pa, level + 1);
+    }
+  }
+}
+
+void 
+vmprint(pagetable_t pagetable) {
+  printf("page table %p\n", pagetable);
+  _vmprint(pagetable, 0);
 }
