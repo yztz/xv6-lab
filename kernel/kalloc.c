@@ -9,6 +9,8 @@
 #include "riscv.h"
 #include "defs.h"
 
+int pg_ref_count[PG_NUM];
+
 void freerange(void *pa_start, void *pa_end);
 
 extern char end[]; // first address after kernel.
@@ -26,6 +28,7 @@ struct {
 void
 kinit()
 {
+  for(int i = 0; i < PG_NUM; i++) pg_ref_count[i] = 1;
   initlock(&kmem.lock, "kmem");
   freerange(end, (void*)PHYSTOP);
 }
@@ -47,9 +50,19 @@ void
 kfree(void *pa)
 {
   struct run *r;
-
+  uint64 i;
   if(((uint64)pa % PGSIZE) != 0 || (char*)pa < end || (uint64)pa >= PHYSTOP)
     panic("kfree");
+  acquire(&kmem.lock);
+  i = (uint64)pa / PGSIZE;
+  // printf("i = %d PGNUM = %d\n", i, PG_NUM);
+  // printf("count = %d\n", pg_ref_count[i]);
+  if (pg_ref_count[i] - 1 > 0) {  // 若-1后大于0
+    pg_ref_count[i]--;
+    release(&kmem.lock);
+    return;
+  }
+  release(&kmem.lock);
 
   // Fill with junk to catch dangling refs.
   memset(pa, 1, PGSIZE);
@@ -76,7 +89,9 @@ kalloc(void)
     kmem.freelist = r->next;
   release(&kmem.lock);
 
-  if(r)
+  if(r) {
     memset((char*)r, 5, PGSIZE); // fill with junk
+    pg_ref_count[((uint64)r / PGSIZE)] = 1;
+  }
   return (void*)r;
 }
