@@ -43,6 +43,7 @@ kernelvec:
         sd t4, 224(sp)
         sd t5, 232(sp)
         sd t6, 240(sp)
+        mv s0,  sp;
 
 	// call the C trap handler in trap.c
         call kerneltrap

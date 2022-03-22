@@ -70,7 +70,8 @@ usertrap(void)
   } else if((which_dev = devintr()) != 0){
     // ok
   } else if(cause == 12 || cause == 13 || cause == 15) {
-    if(handle_pagefault(p->pagetable, r_stval(), cause) != 0) {
+    uint64 va = r_stval();
+    if(va >= MAXVA || handle_pagefault(p->pagetable, va, cause) != 0) {
       p->killed = 1;
     }
   } else {
@@ -151,6 +152,7 @@ kerneltrap()
 
   if((which_dev = devintr()) == 0){
     printf("scause %p\n", scause);
+    backtrace_fp(*(uint64*)((*(uint64 *)(r_fp() - 16)) + 56));
     printf("sepc=%p stval=%p\n", r_sepc(), r_stval());
     panic("kerneltrap");
   }

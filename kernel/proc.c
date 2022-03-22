@@ -122,6 +122,7 @@ found:
 
   // Allocate a trapframe page.
   if((p->trapframe = (struct trapframe *)kalloc()) == 0){
+    printf("stub1\n");
     freeproc(p);
     release(&p->lock);
     return 0;
@@ -130,6 +131,7 @@ found:
   // An empty user page table.
   p->pagetable = proc_pagetable(p);
   if(p->pagetable == 0){
+    printf("stub2\n");
     freeproc(p);
     release(&p->lock);
     return 0;
@@ -283,6 +285,7 @@ fork(void)
 
   // Copy user memory from parent to child.
   if(uvmcopy(p->pagetable, np->pagetable, p->sz) < 0){
+    // printf("stub uvmcopy\n");
     freeproc(np);
     release(&np->lock);
     return -1;
